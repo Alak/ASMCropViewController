@@ -25,17 +25,24 @@ static const NSInteger sHandleTolerance = 22;
 - (id)initWithFrame:(CGRect)frame
 {
 	self = [super initWithFrame:frame];
-	
+
 	if (self)
 	{
 		self.backgroundColor = [UIColor clearColor];
 		self.cropFrame = CGRectZero;
-		
+
 		UIPanGestureRecognizer* gr = [[UIPanGestureRecognizer alloc] initWithTarget:self
 																			 action:@selector(didPan:)];
 		[self addGestureRecognizer:gr];
 	}
 	return self;
+}
+
+- (void)setImageFrame:(CGRect)imageFrame
+{
+    _imageFrame = imageFrame;
+    self.cropFrame = imageFrame;
+	self.aspectRatio = self.aspectRatio;
 }
 
 - (void)setImageSize:(CGSize)imageSize
@@ -70,30 +77,30 @@ static const NSInteger sHandleTolerance = 22;
 		CGPoint screenOffset = [(UIPanGestureRecognizer*)gr translationInView:self];
 		CGPoint imageOffset = CGPointMake(screenOffset.x / self.zoomScale,
 										  screenOffset.y / self.zoomScale);
-		
+
 		CGRect updatedCropFrame = self.initialCropFrame;
-		
+
 		if (self.draggingFrame)
 		{
 			updatedCropFrame = CGRectOffset(updatedCropFrame, imageOffset.x, imageOffset.y);
 
-			if (CGRectGetMinX(updatedCropFrame) < 0)
+			if (CGRectGetMinX(updatedCropFrame) < 0 + self.imageFrame.origin.x)
 			{
-				updatedCropFrame.origin.x = 0;
+				updatedCropFrame.origin.x = 0 + self.imageFrame.origin.x;
 			}
-			if (CGRectGetMaxX(updatedCropFrame) > self.imageSize.width)
+			if (CGRectGetMaxX(updatedCropFrame) > self.imageSize.width + self.imageFrame.origin.x)
 			{
-				updatedCropFrame.origin.x = self.imageSize.width - CGRectGetWidth(updatedCropFrame);
+				updatedCropFrame.origin.x = self.imageSize.width + self.imageFrame.origin.x - CGRectGetWidth(updatedCropFrame);
 			}
-			if (CGRectGetMinY(updatedCropFrame) < 0)
+			if (CGRectGetMinY(updatedCropFrame) < 0 + self.imageFrame.origin.y)
 			{
-				updatedCropFrame.origin.y = 0;
+				updatedCropFrame.origin.y = 0 + self.imageFrame.origin.y;
 			}
-			if (CGRectGetMaxY(updatedCropFrame) > self.imageSize.height)
+			if (CGRectGetMaxY(updatedCropFrame) > self.imageSize.height + self.imageFrame.origin.y)
 			{
-				updatedCropFrame.origin.y = self.imageSize.height - CGRectGetHeight(updatedCropFrame);
+				updatedCropFrame.origin.y = self.imageSize.height + self.imageFrame.origin.y - CGRectGetHeight(updatedCropFrame);
 			}
-			
+
 			self.cropFrame = updatedCropFrame;
 		}
 		else
@@ -116,34 +123,34 @@ static const NSInteger sHandleTolerance = 22;
 					}
 					updatedCropFrame = UIEdgeInsetsInsetRect(updatedCropFrame, insets);
 					updatedCropFrame = CGRectIntersection(updatedCropFrame,
-														  CGRectMake(0, 0, self.imageSize.width, self.imageSize.height));
+														  self.imageFrame);
 
 					CGFloat newWidth = CGRectGetHeight(updatedCropFrame) * self.aspectRatio.width / self.aspectRatio.height;
 
 					updatedCropFrame.origin.x = CGRectGetMidX(updatedCropFrame) - newWidth / 2;
 					updatedCropFrame.size.width = newWidth;
-					
+
 					BOOL fixup = NO;
-					if (CGRectGetMinX(updatedCropFrame) < 0)
+					if (CGRectGetMinX(updatedCropFrame) < 0 + self.imageFrame.origin.x)
 					{
 						updatedCropFrame.size.width = CGRectGetMidX(updatedCropFrame) * 2;
-						updatedCropFrame.origin.x = 0;
+						updatedCropFrame.origin.x = 0 + self.imageFrame.origin.x;
 						fixup = YES;
 					}
-					else if (CGRectGetMaxX(updatedCropFrame) >= self.imageSize.width)
+					else if (CGRectGetMaxX(updatedCropFrame) >= self.imageSize.width + self.imageFrame.origin.x)
 					{
 						updatedCropFrame.size.width = (self.imageSize.width - CGRectGetMidX(updatedCropFrame)) * 2;
-						updatedCropFrame.origin.x = self.imageSize.width - CGRectGetWidth(updatedCropFrame);
+						updatedCropFrame.origin.x = self.imageSize.width + self.imageFrame.origin.x - CGRectGetWidth(updatedCropFrame);
 						fixup = YES;
 					}
-					
+
 					if (fixup)
 					{
 						CGFloat newHeight = CGRectGetWidth(updatedCropFrame) * self.aspectRatio.height / self.aspectRatio.width;
-						
+
 						insets = UIEdgeInsetsZero;
 						CGFloat heightDiff = CGRectGetHeight(updatedCropFrame) - newHeight;
-						
+
 						if (self.draggingTop)
 						{
 							insets.top = heightDiff;
@@ -159,7 +166,7 @@ static const NSInteger sHandleTolerance = 22;
 				else
 				{
 					UIEdgeInsets insets = UIEdgeInsetsZero;
-					
+
 					if (self.draggingLeft)
 					{
 						insets.left = imageOffset.x;
@@ -170,34 +177,34 @@ static const NSInteger sHandleTolerance = 22;
 					}
 					updatedCropFrame = UIEdgeInsetsInsetRect(updatedCropFrame, insets);
 					updatedCropFrame = CGRectIntersection(updatedCropFrame,
-														  CGRectMake(0, 0, self.imageSize.width, self.imageSize.height));
-					
+														  self.imageFrame);
+
 					CGFloat newHeight = CGRectGetWidth(updatedCropFrame) * self.aspectRatio.height / self.aspectRatio.width;
-					
+
 					updatedCropFrame.origin.y = CGRectGetMidY(updatedCropFrame) - newHeight / 2;
 					updatedCropFrame.size.height = newHeight;
-					
+
 					BOOL fixup = NO;
-					if (CGRectGetMinY(updatedCropFrame) < 0)
+					if (CGRectGetMinY(updatedCropFrame) < 0 + self.imageFrame.origin.y)
 					{
 						updatedCropFrame.size.height = CGRectGetMidY(updatedCropFrame) * 2;
-						updatedCropFrame.origin.y = 0;
+						updatedCropFrame.origin.y = 0 + self.imageFrame.origin.y;
 						fixup = YES;
 					}
-					else if (CGRectGetMaxY(updatedCropFrame) >= self.imageSize.height)
+					else if (CGRectGetMaxY(updatedCropFrame) >= self.imageSize.height + self.imageFrame.origin.y)
 					{
 						updatedCropFrame.size.height = (self.imageSize.height - CGRectGetMidY(updatedCropFrame)) * 2;
-						updatedCropFrame.origin.y = self.imageSize.height - CGRectGetHeight(updatedCropFrame);
+						updatedCropFrame.origin.y = self.imageSize.height + self.imageFrame.origin.y - CGRectGetHeight(updatedCropFrame);
 						fixup = YES;
 					}
-					
+
 					if (fixup)
 					{
 						CGFloat newWidth = CGRectGetHeight(updatedCropFrame) * self.aspectRatio.width / self.aspectRatio.height;
-						
+
 						insets = UIEdgeInsetsZero;
 						CGFloat widthDiff = CGRectGetHeight(updatedCropFrame) - newWidth;
-						
+
 						if (self.draggingLeft)
 						{
 							insets.left = widthDiff;
@@ -206,17 +213,17 @@ static const NSInteger sHandleTolerance = 22;
 						{
 							insets.right = widthDiff;
 						}
-						
+
 						updatedCropFrame = UIEdgeInsetsInsetRect(updatedCropFrame, insets);
 					}
 				}
-				
+
 				self.cropFrame = updatedCropFrame;
 			}
 			else
 			{
 				UIEdgeInsets insets = UIEdgeInsetsZero;
-				
+
 				if (self.draggingTop)
 				{
 					insets.top = imageOffset.y;
@@ -225,7 +232,7 @@ static const NSInteger sHandleTolerance = 22;
 				{
 					insets.bottom = -imageOffset.y;
 				}
-				
+
 				if (self.draggingLeft)
 				{
 					insets.left = imageOffset.x;
@@ -236,7 +243,7 @@ static const NSInteger sHandleTolerance = 22;
 				}
 				updatedCropFrame = UIEdgeInsetsInsetRect(updatedCropFrame, insets);
 				updatedCropFrame = CGRectIntersection(updatedCropFrame,
-													 CGRectMake(0, 0, self.imageSize.width, self.imageSize.height));
+													 self.imageFrame);
 				self.cropFrame = updatedCropFrame;
 			}
 		}
@@ -251,18 +258,18 @@ static const NSInteger sHandleTolerance = 22;
     if (hitView == self)
 	{
 		hitView = nil;
-		
+
 		CGAffineTransform imageToScreenTransform = [self imageToScreenTransform];
 		CGRect transformedBox = CGRectApplyAffineTransform(self.cropFrame, imageToScreenTransform);
-		
+
 		CGRect outerBox = CGRectInset(transformedBox, -sHandleTolerance / 2, -sHandleTolerance / 2);
-		
+
 		if (CGRectContainsPoint(outerBox, point))
 		{
 			self.initialCropFrame = self.cropFrame;
-			
+
 			CGRect innerBox = CGRectInset(transformedBox, sHandleTolerance / 2, sHandleTolerance / 2);
-			
+
 			if (!CGRectContainsPoint(innerBox, point))
 			{
 				if (fabsf(point.y - CGRectGetMinY(transformedBox)) < sHandleTolerance)
@@ -273,7 +280,7 @@ static const NSInteger sHandleTolerance = 22;
 				{
 					self.draggingBottom = YES;
 				}
-				
+
 				if (fabsf(point.x - CGRectGetMaxX(transformedBox)) < sHandleTolerance)
 				{
 					self.draggingRight = YES;
@@ -282,7 +289,7 @@ static const NSInteger sHandleTolerance = 22;
 				{
 					self.draggingLeft = YES;
 				}
-				
+
 				hitView = self;
 			}
 			else
@@ -292,7 +299,7 @@ static const NSInteger sHandleTolerance = 22;
 													   CGRectGetHeight(outerBox) / 3,
 													   CGRectGetWidth(outerBox) / 3);
 				CGRect dragBox = UIEdgeInsetsInsetRect(outerBox, insets);
-				
+
 				if (CGRectContainsPoint(dragBox, point))
 				{
 					self.draggingFrame = YES;
@@ -307,6 +314,10 @@ static const NSInteger sHandleTolerance = 22;
 
 - (void)setZoomScale:(CGFloat)zoomScale
 {
+    if (zoomScale == 1) {
+        self.offset = CGSizeMake(0, 0);
+    }
+
 	_zoomScale = zoomScale;
 	[self setNeedsDisplay];
 }
@@ -319,12 +330,7 @@ static const NSInteger sHandleTolerance = 22;
 
 - (CGAffineTransform)imageToScreenTransform
 {
-	return CGAffineTransformMake(self.zoomScale,
-								 0,
-								 0,
-								 self.zoomScale,
-								 self.offset.width,
-								 self.offset.height);
+    return CGAffineTransformMake(self.zoomScale, 0, 0, self.zoomScale, self.offset.width, self.offset.width);
 }
 
 - (void)drawRect:(CGRect)rect
@@ -341,14 +347,14 @@ static const NSInteger sHandleTolerance = 22;
 		CGPathAddRect(cropBoxPath, &imageToScreenTransform, self.cropFrame);
 		CGContextAddPath(ctx, cropBoxPath);
 		CGPathRelease(cropBoxPath);
-		CGContextSetFillColorWithColor(ctx, [UIColor colorWithWhite:0 alpha:0.75f].CGColor);
+		CGContextSetFillColorWithColor(ctx, [UIColor colorWithWhite:1 alpha:0.55f].CGColor);
 		CGContextEOFillPath(ctx);
 	}
 
 	CGContextSetStrokeColorWithColor(ctx, [UIColor whiteColor].CGColor);
 
 	CGFloat outlineStrokeWidth = 2;
-	
+
 	// Draw the outline of the crop box
 	{
 		CGMutablePathRef cropBoxPath = CGPathCreateMutable();
@@ -358,19 +364,19 @@ static const NSInteger sHandleTolerance = 22;
 		CGContextSetLineWidth(ctx, outlineStrokeWidth);
 		CGContextStrokePath(ctx);
 	}
-	
+
 	// Draw the corner handles
 	{
 		CGFloat cornerStrokeWidth = outlineStrokeWidth * 2;
-		
+
 		CGFloat handleOffset = outlineStrokeWidth / self.zoomScale;
-		
+
 		CGMutablePathRef cornerPath = CGPathCreateMutable();
 		const NSInteger handleSize = 20 / self.zoomScale;
 
 		NSInteger horizHandleSize = MIN(handleSize, CGRectGetWidth(self.cropFrame));
 		NSInteger vertHandleSize = MIN(handleSize, CGRectGetHeight(self.cropFrame));
-		
+
 		CGPathMoveToPoint(cornerPath,
 						  &imageToScreenTransform,
 						  CGRectGetMinX(self.cropFrame) + handleOffset,
@@ -409,7 +415,7 @@ static const NSInteger sHandleTolerance = 22;
 							 &imageToScreenTransform,
 							 CGRectGetMinX(self.cropFrame) + handleOffset + horizHandleSize,
 							 CGRectGetMaxY(self.cropFrame) - handleOffset);
-		
+
 		CGPathMoveToPoint(cornerPath,
 						  &imageToScreenTransform,
 						  CGRectGetMaxX(self.cropFrame) - handleOffset,
@@ -422,19 +428,19 @@ static const NSInteger sHandleTolerance = 22;
 							 &imageToScreenTransform,
 							 CGRectGetMaxX(self.cropFrame) - handleOffset - horizHandleSize,
 							 CGRectGetMaxY(self.cropFrame) - handleOffset);
-		
+
 		CGContextAddPath(ctx, cornerPath);
 		CGPathRelease(cornerPath);
 		CGContextSetLineWidth(ctx, cornerStrokeWidth);
 		CGContextStrokePath(ctx);
 	}
-	
+
 	// Draw the grid
 	{
 		CGMutablePathRef gridPath = CGPathCreateMutable();
 
 		CGFloat oneThirdHeight = CGRectGetHeight(self.cropFrame) / 3;
-		
+
 		CGPathMoveToPoint(gridPath,
 						  &imageToScreenTransform,
 						  CGRectGetMinX(self.cropFrame),
@@ -454,7 +460,7 @@ static const NSInteger sHandleTolerance = 22;
 							 CGRectGetMinY(self.cropFrame) + oneThirdHeight * 2);
 
 		CGFloat oneThirdWidth = CGRectGetWidth(self.cropFrame) / 3;
-		
+
 		CGPathMoveToPoint(gridPath,
 						  &imageToScreenTransform,
 						  CGRectGetMinX(self.cropFrame) + oneThirdWidth,
@@ -463,7 +469,7 @@ static const NSInteger sHandleTolerance = 22;
 							 &imageToScreenTransform,
 							 CGRectGetMinX(self.cropFrame) + oneThirdWidth,
 							 CGRectGetMaxY(self.cropFrame));
-		
+
 		CGPathMoveToPoint(gridPath,
 						  &imageToScreenTransform,
 						  CGRectGetMinX(self.cropFrame) + oneThirdWidth * 2,
@@ -472,7 +478,7 @@ static const NSInteger sHandleTolerance = 22;
 							 &imageToScreenTransform,
 							 CGRectGetMinX(self.cropFrame) + oneThirdWidth * 2,
 							 CGRectGetMaxY(self.cropFrame));
-		
+
 		CGContextAddPath(ctx, gridPath);
 		CGPathRelease(gridPath);
 		CGContextSetLineWidth(ctx, outlineStrokeWidth / 2);
