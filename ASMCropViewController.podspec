@@ -1,12 +1,11 @@
-Pod::Spec.new do |s|
-  s.name         = "ASMCropViewController" 
-  s.version      = "0.1"
-  s.summary      = "An iOS view controller for cropping images."
-  s.homepage     = "https://github.com/amolloy/ASMCropViewController"
-  s.screenshots  = "https://raw.github.com/amolloy/ASMCropViewController/master/Screenshots/ScreenshotForReadme.png"
-  s.license      = 'MIT'
-  s.author       = { "Andy Molloy" => "amolloy@gmail.com" }
-  s.source       = { :git => "https://github.com/amolloy/ASMCropViewController.git", :tag => "0.1" }
-  s.source_files = 'ASMCropViewController/ASMCropImageViewController.{h,m}', 'ASMCropViewController/ASMImageCropView.{h,m}'
-  s.requires_arc = true
+Pod::Spec.new do |spec|
+  spec.name         = 'ASMCropViewController'
+  spec.version      = '0.1'
+  spec.license      = { :type => 'MIT' }
+  spec.homepage     = 'https://github.com/amolloy/ASMCropViewController'
+  spec.authors      = { "Andy Molloy" => "amolloy@gmail.com" }
+  spec.summary      = 'ARC and GCD Compatible Reachability Class for iOS and OS X. Drop in replacement for Apple Reachability.'
+  s.source          = { :git => 'https://github.com/amolloy/ASMCropViewController.git', :tag => '0.1' }
+  s.source_files    = 'ASMCropViewController/ASMCropImageViewController.{h,m}', 'ASMCropViewController/ASMImageCropView.{h,m}'
+  spec.requires_arc = true
 end
